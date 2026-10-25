@@ -1,0 +1,451 @@
+-- All-seeing Gourd (EventItem 2003819) fires Action 1276: ground-targeted, 10y range, 2y radius.
+-- Using it on an entity only opens the placement reticle, so throw at the target's position instead.
+LjAsw2026 = LjAsw2026 or {}
+LjAsw2026.questId = 5468
+LjAsw2026.mapId = 1369
+LjAsw2026.gourdId = 2003819
+LjAsw2026.throwRange = 9
+LjAsw2026.retryMs = 3000
+LjAsw2026.lastThrow = LjAsw2026.lastThrow or 0
+LjAsw2026.attempts = LjAsw2026.attempts or 0
+LjAsw2026.targets = {
+	[1058691] = { step = 3, x = 62.28433, y = 39.28275, z = -71.73069, filter = "contentid=1058691,maxdistance=15" },
+	[1058694] = { step = 4, field = "I8EH", mask = 8, x = -6.9612155, y = 30.506763, z = -15.735224, filter = "contentid=1058694,maxdistance=15" },
+	[1058697] = { step = 4, field = "I8EH", mask = 1, x = 17.074984, y = 27.797003, z = 21.660215, filter = "contentid=1058697,maxdistance=15" },
+	[1058696] = { step = 4, field = "I8EH", mask = 2, x = 18.068731, y = 23.458454, z = 82.79231, filter = "contentid=1058696,maxdistance=15" },
+	[1058698] = { step = 4, field = "I8EL", mask = 8, x = -148.943, y = 15.977499, z = 103.98318, filter = "contentid=1058698,maxdistance=15" },
+	[1058695] = { step = 4, field = "I8EH", mask = 4, x = -51.269585, y = 14.663007, z = -18.691267, filter = "contentid=1058695,maxdistance=15" },
+}
+
+function LjAsw2026.Throw(contentId, target)
+	if not IsOnMap(LjAsw2026.mapId) or Player:IsMoving() or MIsCasting() or MIsLoading() or IsPositionLocked() then
+		return
+	end
+	if TimeSince(LjAsw2026.lastThrow) < LjAsw2026.retryMs then
+		return
+	end
+
+	local pos = target
+	local el = EntityList(target.filter)
+	if table.valid(el) then
+		local _, entity = next(el)
+		pos = entity.pos
+	end
+	local ppos = Player.pos
+	if PDistance3D(ppos.x, ppos.y, ppos.z, pos.x, pos.y, pos.z) > LjAsw2026.throwRange then
+		return
+	end
+	if Player.ismounted then
+		Dismount()
+		return
+	end
+
+	local item, action = GetItem(LjAsw2026.gourdId)
+	if not item then
+		d("[LjAsw2026] No All-seeing Gourd in inventory.")
+		LjAsw2026.lastThrow = Now()
+		return
+	end
+	if action and action.isoncd then
+		return
+	end
+
+	LjAsw2026.attempts = LjAsw2026.attempts + 1
+	local caster = (LjAsw2026.attempts % 2 == 0 and action) or item
+	Player:SetFacing(pos.x, pos.y, pos.z)
+	caster:Cast(pos.x, pos.y, pos.z)
+	LjAsw2026.lastThrow = Now()
+	d("[LjAsw2026] Gourd thrown at " .. tostring(contentId) .. " (attempt " .. tostring(LjAsw2026.attempts) .. ")")
+end
+
+function LjAsw2026.Seek(contentId)
+	local target = LjAsw2026.targets[contentId]
+	if GetQuestInfo(LjAsw2026.questId, "step") ~= target.step then
+		return true
+	end
+	if target.field and bit.band(GetQuestInfo(LjAsw2026.questId, target.field), target.mask) ~= 0 then
+		return true
+	end
+	LjAsw2026.Throw(contentId, target)
+	return false
+end
+
+local multiRefObjects = {}
+
+local set1 = {
+	["names"] = {
+		["en"] = "2026 All Saints Wake";
+		["de"] = "2026 All Saints Wake";
+		["fr"] = "2026 All Saints Wake";
+		["jp"] = "2026 All Saints Wake";
+		["cn"] = "2026 All Saints Wake";
+		["kr"] = "2026 All Saints Wake";
+	};
+	["misc"] = {
+		[1] = {
+			["condition"] = {
+				["QuestCompleted(5468)"] = true;
+			};
+			["notes"] = {
+				[1] = "2026 All Saints Wake quests complete.";
+			};
+			["type"] = "endprofile";
+		};
+	};
+	["quests"] = {
+		[5467] = {
+			["level"] = 15;
+			["name"] = "We Scare Bears";
+			["repeatable"] = false;
+			["steps"] = {
+				[1] = {
+					["id"] = 1058681;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -50.00;
+						["y"] = 6.50;
+						["z"] = -88.40;
+					};
+					["type"] = "start";
+				};
+				[2] = {
+					["complete"] = {
+						["step"] = 2;
+					};
+					["conversationindex"] = 1;
+					["id"] = 1058682;
+					["index"] = 1;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -117.20;
+						["y"] = 6.78;
+						["z"] = -189.59;
+					};
+					["type"] = "interact";
+				};
+				[3] = {
+					["complete"] = {
+						["bit.band(GetQuestInfo(5467,'I8FH'),8) ~= 0 or GetQuestInfo(5467,'step') ~= 2"] = true;
+					};
+					["condition"] = {
+						["bit.band(GetQuestInfo(5467,'I8FH'),8) == 0"] = true;
+					};
+					["id"] = 1058683;
+					["index"] = 2;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -232.09;
+						["y"] = 6.10;
+						["z"] = -161.48;
+					};
+					["type"] = "interact";
+				};
+				[4] = {
+					["complete"] = {
+						["bit.band(GetQuestInfo(5467,'I8FH'),4) ~= 0 or GetQuestInfo(5467,'step') ~= 2"] = true;
+					};
+					["condition"] = {
+						["bit.band(GetQuestInfo(5467,'I8FH'),4) == 0"] = true;
+					};
+					["id"] = 1058684;
+					["index"] = 2;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -165.91;
+						["y"] = 7.30;
+						["z"] = -82.49;
+					};
+					["type"] = "interact";
+				};
+				[5] = {
+					["condition"] = {
+						["step"] = 255;
+					};
+					["conversationindex"] = 1;
+					["id"] = 1058686;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -51.85;
+						["y"] = 6.50;
+						["z"] = -88.53;
+					};
+					["type"] = "complete";
+				};
+			};
+		};
+		[5468] = {
+			["level"] = 15;
+			["name"] = "Grim and Grisly Games";
+			["prereq"] = {
+				["QuestCompleted(5467)"] = true;
+			};
+			["repeatable"] = false;
+			["steps"] = {
+				[1] = {
+					["id"] = 1058686;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -51.85;
+						["y"] = 6.50;
+						["z"] = -88.53;
+					};
+					["type"] = "start";
+				};
+				[2] = {
+					["complete"] = {
+						["IsOnMap(1369) or GetQuestInfo(5468,'step') >= 2"] = true;
+					};
+					["id"] = 1058689;
+					["index"] = 1;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -45.57;
+						["y"] = 6.18;
+						["z"] = -104.07;
+					};
+					["type"] = "interact";
+				};
+				[3] = {
+					["complete"] = {
+						["IsOnMap(1369)"] = true;
+					};
+					["condition"] = {
+						["not IsOnMap(1369)"] = true;
+					};
+					["id"] = 1058689;
+					["index"] = 2;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -45.57;
+						["y"] = 6.18;
+						["z"] = -104.07;
+					};
+					["type"] = "interact";
+				};
+				[4] = {
+					["complete"] = {
+						["GetQuestInfo(5468,'step') >= 3"] = true;
+					};
+					["condition"] = {
+						["IsOnMap(1369)"] = true;
+					};
+					["id"] = 1058690;
+					["index"] = 2;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 1369;
+					["pos"] = {
+						["x"] = -54.86;
+						["y"] = 44.38;
+						["z"] = -86.23;
+					};
+					["type"] = "interact";
+				};
+				[5] = {
+					["complete"] = {
+						["IsOnMap(1369)"] = true;
+					};
+					["condition"] = {
+						["not IsOnMap(1369)"] = true;
+					};
+					["id"] = 1058689;
+					["index"] = 3;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -45.57;
+						["y"] = 6.18;
+						["z"] = -104.07;
+					};
+					["type"] = "interact";
+				};
+				[6] = {
+					["complete"] = {
+						["LjAsw2026.Seek(1058691)"] = true;
+					};
+					["condition"] = {
+						["IsOnMap(1369)"] = true;
+					};
+					["index"] = 3;
+					["mapid"] = 1369;
+					["pos"] = {
+						["x"] = 62.28433;
+						["y"] = 39.28275;
+						["z"] = -71.73069;
+					};
+					["type"] = "nav";
+				};
+				[7] = {
+					["complete"] = {
+						["IsOnMap(1369)"] = true;
+					};
+					["condition"] = {
+						["not IsOnMap(1369)"] = true;
+					};
+					["id"] = 1058689;
+					["index"] = 4;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -45.57;
+						["y"] = 6.18;
+						["z"] = -104.07;
+					};
+					["type"] = "interact";
+				};
+				[8] = {
+					["complete"] = {
+						["LjAsw2026.Seek(1058694)"] = true;
+					};
+					["condition"] = {
+						["IsOnMap(1369) and bit.band(GetQuestInfo(5468,'I8EH'),8) == 0"] = true;
+					};
+					["index"] = 4;
+					["mapid"] = 1369;
+					["pos"] = {
+						["x"] = -6.9612155;
+						["y"] = 30.506763;
+						["z"] = -15.735224;
+					};
+					["type"] = "nav";
+				};
+				[9] = {
+					["complete"] = {
+						["LjAsw2026.Seek(1058697)"] = true;
+					};
+					["condition"] = {
+						["IsOnMap(1369) and bit.band(GetQuestInfo(5468,'I8EH'),1) == 0"] = true;
+					};
+					["index"] = 4;
+					["mapid"] = 1369;
+					["pos"] = {
+						["x"] = 17.074984;
+						["y"] = 27.797003;
+						["z"] = 21.660215;
+					};
+					["type"] = "nav";
+				};
+				[10] = {
+					["complete"] = {
+						["LjAsw2026.Seek(1058696)"] = true;
+					};
+					["condition"] = {
+						["IsOnMap(1369) and bit.band(GetQuestInfo(5468,'I8EH'),2) == 0"] = true;
+					};
+					["index"] = 4;
+					["mapid"] = 1369;
+					["pos"] = {
+						["x"] = 18.068731;
+						["y"] = 23.458454;
+						["z"] = 82.79231;
+					};
+					["type"] = "nav";
+				};
+				[11] = {
+					["complete"] = {
+						["LjAsw2026.Seek(1058698)"] = true;
+					};
+					["condition"] = {
+						["IsOnMap(1369) and bit.band(GetQuestInfo(5468,'I8EL'),8) == 0"] = true;
+					};
+					["index"] = 4;
+					["mapid"] = 1369;
+					["pos"] = {
+						["x"] = -148.943;
+						["y"] = 15.977499;
+						["z"] = 103.98318;
+					};
+					["type"] = "nav";
+				};
+				[12] = {
+					["complete"] = {
+						["LjAsw2026.Seek(1058695)"] = true;
+					};
+					["condition"] = {
+						["IsOnMap(1369) and bit.band(GetQuestInfo(5468,'I8EH'),4) == 0"] = true;
+					};
+					["index"] = 4;
+					["mapid"] = 1369;
+					["pos"] = {
+						["x"] = -51.269585;
+						["y"] = 14.663007;
+						["z"] = -18.691267;
+					};
+					["type"] = "nav";
+				};
+				[13] = {
+					["complete"] = {
+						["IsOnMap(1369)"] = true;
+					};
+					["condition"] = {
+						["not IsOnMap(1369)"] = true;
+					};
+					["id"] = 1058689;
+					["index"] = 5;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -45.57;
+						["y"] = 6.18;
+						["z"] = -104.07;
+					};
+					["type"] = "interact";
+				};
+				[14] = {
+					["complete"] = {
+						["step"] = 255;
+					};
+					["condition"] = {
+						["IsOnMap(1369)"] = true;
+					};
+					["id"] = 1058704;
+					["index"] = 5;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 1369;
+					["pos"] = {
+						["x"] = -55.59;
+						["y"] = 44.38;
+						["z"] = -84.86;
+					};
+					["type"] = "interact";
+				};
+				[15] = {
+					["condition"] = {
+						["step"] = 255;
+					};
+					["id"] = 1058686;
+					["itemreward"] = false;
+					["itemturnin"] = false;
+					["mapid"] = 133;
+					["pos"] = {
+						["x"] = -51.85;
+						["y"] = 6.50;
+						["z"] = -88.53;
+					};
+					["type"] = "complete";
+				};
+			};
+		};
+	};
+}
+return set1
